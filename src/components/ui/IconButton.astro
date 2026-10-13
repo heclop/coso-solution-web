@@ -1,0 +1,18 @@
+---
+/** Botón solo con ícono. `label` es obligatorio: es el nombre accesible. */
+import type { HTMLAttributes } from 'astro/types';
+
+import Icon, { type IconName } from './Icon.astro';
+
+interface Props extends Omit<HTMLAttributes<'button'>, 'type'> {
+  icon: IconName;
+  label: string;
+  type?: 'button' | 'submit';
+}
+
+const { icon, label, type = 'button', class: className, ...rest } = Astro.props;
+---
+
+<button type={type} class:list={['icon-btn', className]} aria-label={label} {...rest}>
+  <Icon name={icon} size={22} />
+</button>

@@ -1,0 +1,40 @@
+---
+/**
+ * Enfoque: diagrama de arquitectura (ilustra «la solución completa, no una pieza suelta»)
+ * + cuatro principios en texto (sin íconos decorativos), revelados como un solo grupo.
+ */
+import { approach } from '../../data/home';
+import ArchitectureDiagram from '../ui/ArchitectureDiagram.astro';
+import Eyebrow from '../ui/Eyebrow.astro';
+---
+
+<section
+  aria-labelledby="t-enfoque"
+  class="border-y border-[#E3E8EF] bg-paper py-[clamp(64px,8vw,112px)]"
+>
+  <div class="wrap">
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-6" data-reveal>
+      <div>
+        <Eyebrow class="mb-4 text-brand">{approach.eyebrow}</Eyebrow>
+        <h2
+          id="t-enfoque"
+          class="max-w-[640px] text-[clamp(30px,3.2vw,42px)] leading-[1.1] font-bold tracking-[-0.02em]"
+        >
+          {approach.title}
+        </h2>
+      </div>
+      <p class="max-w-[380px] text-body">{approach.intro}</p>
+    </div>
+
+    <ArchitectureDiagram />
+
+    <div class="mt-16 grid grid-cols-1 gap-x-16 gap-y-10 md:grid-cols-2" data-reveal-group>
+      {approach.principles.map((item) => (
+        <div class="border-t border-line-strong pt-5">
+          <h3 class="mb-2 text-[21px] font-bold">{item.title}</h3>
+          <p class="text-body">{item.text}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

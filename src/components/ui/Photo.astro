@@ -1,0 +1,46 @@
+---
+/**
+ * Foto responsiva: <Picture> de Astro genera AVIF y WebP en varios anchos (srcset)
+ * y siempre emite width/height (evita saltos de diseño, CLS).
+ * `sizes` debe describir el ancho real en pantalla para que el navegador elija bien.
+ */
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  sizes: string;
+  class?: string | undefined;
+  /** Calidad AVIF/WebP (1–100). Bajo una capa oscura puede bajarse sin que se note. */
+  quality?: number;
+  /** Imagen principal de la vista inicial: carga inmediata y prioridad alta. */
+  priority?: boolean;
+  widths?: number[];
+}
+
+const {
+  src,
+  alt,
+  sizes,
+  class: className,
+  priority = false,
+  quality = 72,
+  widths = [480, 720, 960, 1280, 1600, 1920, 2400],
+} = Astro.props;
+
+const usable = widths.filter((w) => w <= src.width);
+---
+
+<Picture
+  src={src}
+  alt={alt}
+  sizes={sizes}
+  widths={usable.length > 0 ? usable : [src.width]}
+  formats={['avif', 'webp']}
+  quality={quality}
+  class={className}
+  loading={priority ? 'eager' : 'lazy'}
+  decoding={priority ? 'sync' : 'async'}
+  fetchpriority={priority ? 'high' : 'auto'}
+/>

@@ -1,0 +1,15 @@
+dist/
+.astro/
+node_modules/
+.env
+.env.*
+!.env.example
+.wrangler/
+npm-debug.log*
+.DS_Store
+
+# Material local que no se publica (los scripts de scripts/ lo leen solo en local)
+img-example/
+img-optimizadas/
+PROMPT-landing-coso-solutions.md
+prompt_coso_solution_landing_contenido.md

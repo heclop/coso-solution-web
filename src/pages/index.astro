@@ -1,0 +1,40 @@
+---
+/**
+ * Página de inicio. Cada archivo en src/pages/ es una ruta: index.astro → "/".
+ * La página solo ordena secciones; el contenido vive en src/data/home.ts.
+ */
+import Footer from '../components/layout/Footer.astro';
+import Header from '../components/layout/Header.astro';
+import MobileMenu from '../components/layout/MobileMenu.astro';
+import AiSection from '../components/sections/AiSection.astro';
+import Approach from '../components/sections/Approach.astro';
+import Contact from '../components/sections/Contact.astro';
+import DataDetail from '../components/sections/DataDetail.astro';
+import Faq from '../components/sections/Faq.astro';
+import Hero from '../components/sections/Hero.astro';
+import Process from '../components/sections/Process.astro';
+import Services from '../components/sections/Services.astro';
+import Situations from '../components/sections/Situations.astro';
+import TechStack from '../components/sections/TechStack.astro';
+import JsonLd from '../components/seo/JsonLd.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout>
+  <JsonLd slot="head" />
+  <Header />
+  <MobileMenu />
+  <main id="contenido">
+    <Hero />
+    <Situations />
+    <Services />
+    <TechStack />
+    <DataDetail />
+    <AiSection />
+    <Process />
+    <Approach />
+    <Faq />
+    <Contact />
+  </main>
+  <Footer />
+</BaseLayout>

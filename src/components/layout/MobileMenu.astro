@@ -1,0 +1,136 @@
+---
+/**
+ * Menú móvil: panel a pantalla completa bajo la cabecera.
+ * Sin JS queda oculto y la navegación sigue disponible en el pie de página.
+ * El <script> de abajo es un script de Astro: se empaqueta, se sirve como módulo
+ * y la CSP incluye su hash automáticamente.
+ */
+import { mainNav, primaryCta } from '../../data/navigation';
+import Button from '../ui/Button.astro';
+---
+
+<div
+  id="mobile-menu"
+  class="fixed inset-x-0 top-[76px] bottom-0 z-30 overflow-y-auto bg-white nav:hidden"
+  hidden
+>
+  <nav aria-label="Menú móvil" class="wrap flex min-h-full flex-col pt-6 pb-10">
+    <ul class="border-t border-line">
+      {mainNav.map((link, index) => (
+        <li class="menu-item border-b border-line" style={`--i:${index}`}>
+          <a
+            href={link.href}
+            class="flex min-h-16 items-center justify-between text-2xl font-semibold text-ink no-underline transition-colors aria-[current=true]:text-brand"
+            data-nav-link
+          >
+            {link.label}
+            <span class="font-mono text-[13px] font-normal text-muted">0{index + 1}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <Button href={primaryCta.href} size="lg" arrow class="menu-item mt-10 w-full" style="--i:4">
+      {primaryCta.label}
+    </Button>
+  </nav>
+</div>
+
+<style>
+  /* Abrir: el panel baja y se desvanece hacia dentro, los elementos entran escalonados.
+     Cerrar: el panel se desvanece hacia arriba (data-closing) antes de ocultarse. */
+  @media (prefers-reduced-motion: no-preference) {
+    #mobile-menu:not([hidden]) {
+      animation: panel-in 0.32s var(--ease-out-soft) both;
+    }
+    #mobile-menu[data-closing] {
+      animation: panel-out 0.2s ease-in both;
+    }
+    #mobile-menu:not([hidden]):not([data-closing]) .menu-item {
+      animation: menu-in 0.45s var(--ease-out-soft) both;
+      animation-delay: calc(var(--i) * 50ms + 60ms);
+    }
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes panel-out {
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.getElementById('mobile-menu');
+
+  if (toggle && menu) {
+    const desktop = window.matchMedia('(min-width: 1024px)'); // = --breakpoint-nav;
+    const focusables = () => [toggle, ...menu.querySelectorAll<HTMLElement>('a[href]')];
+
+    const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    let closing = 0;
+
+    const setOpen = (open: boolean, restoreFocus = true) => {
+      window.clearTimeout(closing);
+      delete menu.dataset['closing'];
+      if (open || !motionOk.matches) menu.hidden = !open;
+      else if (!menu.hidden) {
+        // Animación de salida y luego se oculta (el temporizador cubre navegadores sin animationend)
+        menu.dataset['closing'] = '';
+        closing = window.setTimeout(() => {
+          menu.hidden = true;
+          delete menu.dataset['closing'];
+        }, 200);
+      }
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      toggle
+        .querySelector('path')
+        ?.setAttribute('d', open ? 'M6 6l12 12M18 6 6 18' : 'M4 7h16M4 12h16M4 17h16');
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      if (open) focusables()[1]?.focus();
+      else if (restoreFocus) toggle.focus();
+    };
+
+    toggle.addEventListener('click', () =>
+      setOpen(menu.hidden !== false || menu.dataset['closing'] !== undefined),
+    );
+
+    // Cerrar al elegir un enlace (el ancla hace el resto)
+    menu.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false, false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (menu.hidden || menu.dataset['closing'] !== undefined) return;
+      if (event.key === 'Escape') return setOpen(false);
+      if (event.key !== 'Tab') return;
+      // Trampa de foco: el Tab circula entre el botón y los enlaces del menú
+      const items = focusables();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    });
+
+    desktop.addEventListener('change', (event) => {
+      if (event.matches && !menu.hidden) setOpen(false, false);
+    });
+  }
+</script>

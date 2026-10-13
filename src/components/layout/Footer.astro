@@ -1,0 +1,61 @@
+---
+import { Image } from 'astro:assets';
+
+import icon from '../../assets/brand/icono-coso-solution.png';
+import { contact } from '../../data/contact';
+import { footer } from '../../data/home';
+import { legalNav, mainNav } from '../../data/navigation';
+import { site } from '../../data/site';
+import { mailtoUrl, whatsappUrl } from '../../lib/whatsapp';
+
+const year = new Date().getFullYear();
+const linkClass = 'text-mist no-underline transition-colors hover:text-white';
+---
+
+<footer class="bg-ink pt-16 pb-10 text-[15px] text-mist">
+  <div class="wrap">
+    <div class="flex flex-wrap justify-between gap-10">
+      <div class="flex min-w-0 flex-[1_1_320px] items-start gap-[18px]">
+        <Image src={icon} alt="" width={56} height={56} class="size-14 flex-none" />
+        <div>
+          <p class="text-lg font-bold text-white">{site.name}</p>
+          <p class="mt-1.5 max-w-[340px]">{footer.summary}</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-14">
+        <nav aria-label="Secciones" class="flex flex-col gap-2.5">
+          <p class="mb-1 font-semibold text-white">Secciones</p>
+          {mainNav.map((link) => (
+            <a href={link.href} class={linkClass}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+        <div class="flex flex-col gap-2.5">
+          <p class="mb-1 font-semibold text-white">Contacto</p>
+          <a href={mailtoUrl(contact.email)} class={linkClass}>
+            {contact.email}
+          </a>
+          <a href={whatsappUrl(contact.whatsapp)} class={linkClass} target="_blank" rel="noopener">
+            WhatsApp {contact.phoneDisplay}
+          </a>
+          <span>{contact.hours}</span>
+        </div>
+      </div>
+    </div>
+    <div class="mt-14 flex flex-wrap justify-between gap-4 border-t border-ink-line pt-6 text-sm">
+      <p>
+        © {year} {site.name}
+      </p>
+      <ul class="flex gap-6">
+        {legalNav.map((link) => (
+          <li>
+            <a href={link.href} class="text-mist underline-offset-4 hover:text-white">
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</footer>

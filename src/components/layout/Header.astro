@@ -1,0 +1,148 @@
+---
+/**
+ * Cabecera fija. El menú móvil (MobileMenu.astro) va FUERA del <header>, como hermano:
+ * así ningún efecto aplicado al header (transform, backdrop-filter) altera su posición fija.
+ */
+import { Image } from 'astro:assets';
+
+import logo from '../../assets/brand/logo-coso-solution.png';
+import { mainNav, primaryCta } from '../../data/navigation';
+import { site } from '../../data/site';
+import Button from '../ui/Button.astro';
+import IconButton from '../ui/IconButton.astro';
+---
+
+<header
+  id="site-header"
+  class="sticky top-0 z-40 border-b border-[#E3E8EF] bg-white transition-shadow duration-300 data-[scrolled]:shadow-[0_1px_0_#E3E8EF,0_8px_24px_-12px_rgba(11,27,51,0.18)]"
+>
+  <div class="wrap flex h-[76px] items-center justify-between gap-6">
+    <a
+      href="/#inicio"
+      class="block shrink-0 leading-none"
+      aria-label={`${site.name}, ir al inicio`}
+    >
+      <Image
+        src={logo}
+        alt={site.name}
+        width={138}
+        height={48}
+        densities={[1, 2]}
+        loading="eager"
+        class="h-11 w-auto nav:h-12"
+      />
+    </a>
+
+    <nav aria-label="Principal" class="hidden nav:block">
+      <ul class="flex items-center gap-6 text-[15px] font-medium whitespace-nowrap xl:gap-8">
+        {mainNav.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="relative py-2 text-ink no-underline after:absolute after:inset-x-0 after:bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-300 hover:text-brand hover:after:scale-x-100 focus-visible:after:scale-x-100 aria-[current=true]:text-brand aria-[current=true]:after:scale-x-100"
+              data-nav-link
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <Button href={primaryCta.href} variant="dark" class="hidden whitespace-nowrap sm:inline-flex">
+        {primaryCta.label}
+      </Button>
+      <IconButton
+        icon="menu"
+        label="Abrir menú"
+        class="nav:hidden"
+        aria-controls="mobile-menu"
+        aria-expanded="false"
+        data-menu-toggle
+      />
+    </div>
+  </div>
+  <!-- Barra de lectura: sigue al scroll con CSS (sin JS); se oculta donde no hay soporte -->
+  <span class="read-progress" aria-hidden="true"></span>
+</header>
+
+<style>
+  .read-progress {
+    display: none;
+  }
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .read-progress {
+        display: block;
+        position: absolute;
+        inset: auto 0 -1px;
+        height: 2px;
+        background: var(--color-brand);
+        transform-origin: left;
+        animation: read-progress linear both;
+      }
+      /* animation-timeline/range en regla aparte y más específica: si van junto al shorthand, el
+         minificador los fusiona en «animation: … scroll()», forma que Chrome descarta entera. */
+      .read-progress.read-progress {
+        animation-timeline: scroll(root);
+      }
+    }
+  }
+  @keyframes read-progress {
+    from {
+      transform: scaleX(0);
+    }
+  }
+</style>
+
+<script>
+  // Sombra del header al hacer scroll (solo cambia una sombra: sin saltos de diseño)
+  const header = document.getElementById('site-header');
+  if (header) {
+    let ticking = false;
+    const update = () => {
+      header.toggleAttribute('data-scrolled', window.scrollY > 8);
+      ticking = false;
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) requestAnimationFrame(update);
+        ticking = true;
+      },
+      { passive: true },
+    );
+    requestAnimationFrame(update); // primera lectura en el siguiente frame: evita un reflow forzado al cargar
+  }
+
+  /* Sección activa: un IntersectionObserver marca con aria-current el enlace de la sección que
+     cruza la franja central de la pantalla (desktop y menú móvil). Sin trabajo en cada scroll. */
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav-link]')];
+  const ids = [...new Set(links.map((link) => link.hash.slice(1)).filter(Boolean))];
+  const sections = ids
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  if (sections.length > 0 && 'IntersectionObserver' in window) {
+    const setActive = (id: string | null) => {
+      for (const link of links) {
+        if (id && link.hash === '#' + id) link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
+      }
+    };
+    const visible = new Set<string>();
+    const spy = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        }
+        // La última sección visible en orden del documento es la activa
+        setActive(ids.filter((id) => visible.has(id)).pop() ?? null);
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    sections.forEach((section) => spy.observe(section));
+  }
+</script>

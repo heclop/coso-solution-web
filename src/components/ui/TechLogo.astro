@@ -1,0 +1,30 @@
+---
+/**
+ * Logotipo de tecnología desde el sprite /tech-icons.svg (se pinta con currentColor).
+ * Decorativo: el nombre de la tecnología siempre va como texto visible al lado.
+ */
+import { techIcons, type TechIconKey } from '../../data/tech-icons';
+
+interface Props {
+  name: TechIconKey;
+  size?: number;
+  class?: string | undefined;
+  /** Usa el color de marca en lugar de currentColor. */
+  brand?: boolean;
+}
+
+const { name, size = 20, class: className, brand = false } = Astro.props;
+const icon = techIcons[name];
+---
+
+<svg
+  class={className}
+  viewBox={icon.viewBox}
+  width={size}
+  height={size}
+  fill={brand ? icon.color : 'currentColor'}
+  aria-hidden="true"
+  focusable="false"
+>
+  <use href={`/tech-icons.svg#${name}`}></use>
+</svg>

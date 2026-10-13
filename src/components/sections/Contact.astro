@@ -1,0 +1,286 @@
+---
+/**
+ * Contacto: conversión principal. Campos mínimos, etiquetas visibles y canal preferido
+ * con radios (en vez de <select>, cuyo desplegable nativo no se puede estilizar).
+ *
+ * Al enviar (JS): valida con mensajes claros, abre WhatsApp o el correo con el mensaje
+ * redactado y muestra una confirmación. Sin JS no hay envío posible en un sitio estático,
+ * así que <noscript> ofrece los canales directos.
+ */
+import { contact } from '../../data/contact';
+import { contactSection } from '../../data/home';
+import { legalNav } from '../../data/navigation';
+import { mailtoUrl, whatsappUrl } from '../../lib/whatsapp';
+import Button from '../ui/Button.astro';
+import Field from '../ui/Field.astro';
+import Icon from '../ui/Icon.astro';
+
+const privacy = legalNav[0];
+const mailHref = mailtoUrl(contact.email);
+const whatsappHref = whatsappUrl(contact.whatsapp, 'Hola, quiero hacerles una consulta.');
+---
+
+<section
+  id="contacto"
+  aria-labelledby="t-contacto"
+  class="border-t-2 border-ink py-[clamp(72px,9vw,128px)]"
+>
+  <div class="wrap flex flex-wrap gap-[clamp(40px,6vw,96px)]">
+    <div class="min-w-0 flex-[1_1_360px]" data-reveal>
+      <h2
+        id="t-contacto"
+        class="text-[clamp(36px,4.6vw,64px)] leading-[1.04] font-extrabold tracking-[-0.025em]"
+      >
+        {contactSection.title}
+      </h2>
+      <p class="mt-6 max-w-[420px] text-body">{contactSection.text}</p>
+      <div class="mt-10 border-t border-line pt-6 text-base">
+        <p class="mb-3 font-semibold">¿Prefieres otro canal?</p>
+        <ul class="space-y-1 text-body">
+          <li>
+            <a
+              href={mailHref}
+              class="inline-flex min-h-11 items-center gap-2.5 text-brand hover:text-ink"
+            >
+              <Icon name="mail" />
+              {contact.email}
+            </a>
+          </li>
+          <li>
+            <a
+              href={whatsappHref}
+              class="inline-flex min-h-11 items-center gap-2.5 text-brand hover:text-ink"
+              target="_blank"
+              rel="noopener"
+            >
+              <Icon name="whatsapp" />
+              WhatsApp {contact.phoneDisplay}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="relative min-w-0 flex-[1.3_1_480px]" data-reveal>
+      <form
+        class="flex flex-col gap-[22px]"
+        aria-label="Formulario de contacto"
+        data-contact-form
+        data-email={contact.email}
+        data-whatsapp={contact.whatsapp}
+      >
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[22px]">
+          <Field id="f-nombre" name="nombre" label="Nombre" autocomplete="name" required />
+          <Field
+            id="f-empresa"
+            name="empresa"
+            label="Empresa"
+            optional
+            autocomplete="organization"
+          />
+        </div>
+        <Field
+          id="f-correo"
+          name="correo"
+          label="Correo electrónico"
+          type="email"
+          autocomplete="email"
+          required
+        />
+        <Field
+          id="f-mensaje"
+          name="mensaje"
+          label={contactSection.messageLabel}
+          textarea
+          required
+          placeholder={contactSection.messagePlaceholder}
+        />
+        <fieldset>
+          <legend class="mb-2.5 text-[15px] font-semibold">
+            ¿Cómo prefieres que te contactemos?
+          </legend>
+          <div class="flex flex-wrap gap-2.5">
+            {contactSection.channels.map((channel, index) => (
+              <label class="relative cursor-pointer">
+                <input
+                  type="radio"
+                  name="canal"
+                  value={channel.value}
+                  checked={index === 0}
+                  class="peer absolute h-px w-px opacity-0"
+                />
+                <span class="inline-flex min-h-11 items-center rounded-ui border border-field px-[18px] text-[15px] transition-colors peer-checked:border-ink peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand hover:border-ink">
+                  {channel.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <!-- Solo aparece si el canal es «Llamada» -->
+        <Field
+          id="f-telefono"
+          name="telefono"
+          label="Teléfono"
+          type="tel"
+          autocomplete="tel"
+          wrapper={{ 'data-phone-field': true, hidden: true }}
+        />
+        <div class="mt-1.5 flex flex-wrap items-center gap-x-6 gap-y-4">
+          <Button type="submit" size="lg" arrow>
+            {contactSection.submit}
+          </Button>
+          <p class="text-sm text-muted">
+            {contactSection.privacyNote}{' '}
+            {privacy && (
+              <a href={privacy.href} class="text-brand underline underline-offset-4 hover:text-ink">
+                {contactSection.privacyLinkLabel}
+              </a>
+            )}
+            .
+          </p>
+        </div>
+        <noscript>
+          <p class="rounded-ui border border-line bg-paper p-4 text-sm text-body">
+            Para enviar el formulario necesitas JavaScript. También puedes escribirnos a{' '}
+            <a href={mailHref} class="text-brand underline underline-offset-4">
+              {contact.email}
+            </a>{' '}
+            o por{' '}
+            <a href={whatsappHref} class="text-brand underline underline-offset-4">
+              WhatsApp
+            </a>
+            .
+          </p>
+        </noscript>
+      </form>
+
+      <!-- Confirmación (role=status: los lectores de pantalla la anuncian) -->
+      <div
+        class="form-success mt-6 rounded-md border border-[#B7D3C2] bg-[#F1F8F4] p-6"
+        role="status"
+        tabindex="-1"
+        data-form-success
+        hidden
+      >
+        <p class="text-lg font-bold text-ink" data-success-title>
+          ¡Listo! Tu mensaje está preparado.
+        </p>
+        <p class="mt-2 text-body" data-success-text></p>
+        <p class="mt-3 text-sm text-muted">
+          ¿No se abrió nada? Escríbenos directamente a{' '}
+          <a href={mailHref} class="text-brand underline underline-offset-4 hover:text-ink">
+            {contact.email}
+          </a>{' '}
+          o por{' '}
+          <a
+            href={whatsappHref}
+            class="text-brand underline underline-offset-4 hover:text-ink"
+            target="_blank"
+            rel="noopener"
+          >
+            WhatsApp
+          </a>
+          .
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @media (prefers-reduced-motion: no-preference) {
+    .form-success:not([hidden]) {
+      animation: success-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+  }
+  @keyframes success-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+</style>
+
+<script>
+  import {
+    contactHref,
+    parseContactForm,
+    validateContact,
+    type ContactFormData,
+  } from '../../lib/contact-form';
+
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+  const success = document.querySelector<HTMLElement>('[data-form-success]');
+  const phoneField = form?.querySelector<HTMLElement>('[data-phone-field]');
+
+  if (form && success && phoneField) {
+    // Validación propia (mensajes claros y en español) en lugar de las burbujas del navegador
+    form.noValidate = true;
+    const phoneInput = phoneField.querySelector('input');
+
+    const syncPhone = () => {
+      const isCall = new FormData(form).get('canal') === 'llamada';
+      phoneField.hidden = !isCall;
+      if (phoneInput) phoneInput.required = isCall;
+    };
+    form.addEventListener('change', (event) => {
+      if ((event.target as HTMLInputElement).name === 'canal') syncPhone();
+    });
+
+    const showErrors = (errors: Partial<Record<keyof ContactFormData, string>>) => {
+      let first: HTMLElement | null = null;
+      form
+        .querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[id], textarea')
+        .forEach((field) => {
+          const message = errors[field.name as keyof ContactFormData];
+          const errorEl = document.getElementById(`${field.id}-error`);
+          if (!errorEl) return;
+          errorEl.textContent = message ?? '';
+          errorEl.hidden = !message;
+          field.setAttribute('aria-invalid', String(Boolean(message)));
+          if (message && !first) first = field;
+        });
+      return first as HTMLElement | null;
+    };
+
+    // Al corregir un campo, su error desaparece
+    form.addEventListener('input', (event) => {
+      const field = event.target as HTMLInputElement;
+      if (field.getAttribute('aria-invalid') !== 'true') return;
+      const errors = validateContact(parseContactForm(new FormData(form)));
+      if (!errors[field.name as keyof ContactFormData]) {
+        field.setAttribute('aria-invalid', 'false');
+        const errorEl = document.getElementById(`${field.id}-error`);
+        if (errorEl) errorEl.hidden = true;
+      }
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = parseContactForm(new FormData(form));
+      const firstInvalid = showErrors(validateContact(data));
+      if (firstInvalid) {
+        firstInvalid.focus();
+        return;
+      }
+
+      const href = contactHref(data, {
+        email: form.dataset['email'] ?? '',
+        whatsapp: form.dataset['whatsapp'] ?? '',
+      });
+      if (data.canal === 'whatsapp') window.open(href, '_blank', 'noopener');
+      else window.location.href = href;
+
+      const text = success.querySelector('[data-success-text]');
+      if (text) {
+        text.textContent =
+          data.canal === 'whatsapp'
+            ? 'Abrimos WhatsApp con tu mensaje ya escrito. Solo tienes que pulsar «Enviar».'
+            : 'Abrimos tu programa de correo con el mensaje ya escrito. Solo tienes que enviarlo.';
+      }
+      success.hidden = false;
+      success.focus({ preventScroll: true });
+      success.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+  }
+</script>

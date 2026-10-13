@@ -1,0 +1,293 @@
+---
+/**
+ * Diagrama de arquitectura ilustrativo (SVG generado en el build, sin JS).
+ * Dos maquetaciones: horizontal (≥ 768 px) y vertical (móvil), para que el texto se lea siempre.
+ * Las conexiones se calculan a partir de las cajas: curvas horizontales si los nodos están lado a
+ * lado, verticales si están uno encima de otro.
+ *
+ * Animación (solo con JS y sin movimiento reducido; la dispara el IntersectionObserver con .is-in):
+ * los nodos entran en secuencia, las conexiones se dibujan (stroke-dashoffset en trazos cortos) y un
+ * pulso recorre cada conexión 3 veces (< 5 s por conexión, WCAG 2.2.2). Sin animación, el diagrama
+ * se ve completo y estático.
+ */
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+type NodeId = 'web' | 'app' | 'panel' | 'api' | 'db' | 'ai' | 'flow' | 'ext';
+
+const nodes: Record<NodeId, { label: string; sub: string; order: number; core?: boolean }> = {
+  web: { label: 'Web y landing', sub: 'Astro · React · Next.js', order: 0 },
+  app: { label: 'App móvil', sub: 'Flutter', order: 0 },
+  panel: { label: 'Panel interno', sub: 'Angular', order: 0 },
+  api: { label: 'API y lógica de negocio', sub: 'Node.js · NestJS · .NET', order: 1, core: true },
+  db: { label: 'Base de datos', sub: 'PostgreSQL · SQL Server', order: 2 },
+  ai: { label: 'Agente de IA', sub: 'lectura autorizada', order: 2 },
+  flow: { label: 'Automatización', sub: 'n8n', order: 3 },
+  ext: { label: 'Servicios externos', sub: 'CRM · ERP · correo', order: 4 },
+};
+
+const edges: { from: NodeId; to: NodeId; order: number; dashed?: boolean }[] = [
+  { from: 'web', to: 'api', order: 1 },
+  { from: 'app', to: 'api', order: 1 },
+  { from: 'panel', to: 'api', order: 1 },
+  { from: 'api', to: 'db', order: 2 },
+  { from: 'api', to: 'ai', order: 2 },
+  { from: 'api', to: 'flow', order: 3 },
+  { from: 'ai', to: 'db', order: 4, dashed: true },
+  { from: 'flow', to: 'ext', order: 4 },
+];
+
+interface Layout {
+  id: string;
+  viewBox: [number, number];
+  boxes: Record<NodeId, Box>;
+  cloud: Box;
+  className: string;
+}
+
+const W = 220;
+const H = 68;
+const desktop: Layout = {
+  id: 'h',
+  viewBox: [1200, 470],
+  className: 'hidden md:block',
+  cloud: { x: 318, y: 24, w: 584, h: 436 },
+  boxes: {
+    web: { x: 20, y: 40, w: W, h: H },
+    app: { x: 20, y: 201, w: W, h: H },
+    panel: { x: 20, y: 362, w: W, h: H },
+    api: { x: 340, y: 201, w: W, h: H },
+    db: { x: 660, y: 40, w: W, h: H },
+    ai: { x: 660, y: 201, w: W, h: H },
+    flow: { x: 660, y: 362, w: W, h: H },
+    ext: { x: 960, y: 362, w: W, h: H },
+  },
+};
+const mobile: Layout = {
+  id: 'v',
+  viewBox: [360, 760],
+  className: 'md:hidden',
+  cloud: { x: 2, y: 214, w: 356, h: 396 },
+  boxes: {
+    web: { x: 8, y: 8, w: 164, h: 64 },
+    app: { x: 188, y: 8, w: 164, h: 64 },
+    // Panel centrado y algo más estrecho: las líneas de web y app bajan rectas a sus lados
+    panel: { x: 106, y: 104, w: 148, h: 64 },
+    api: { x: 8, y: 254, w: 344, h: 64 },
+    db: { x: 8, y: 382, w: 164, h: 64 },
+    ai: { x: 188, y: 382, w: 164, h: 64 },
+    flow: { x: 98, y: 520, w: 164, h: 64 },
+    ext: { x: 98, y: 680, w: 164, h: 64 },
+  },
+};
+
+/** Curva entre dos cajas: horizontal o vertical según su posición relativa. */
+function connect(a: Box, b: Box): string {
+  const acx = a.x + a.w / 2;
+  const acy = a.y + a.h / 2;
+  const bcx = b.x + b.w / 2;
+  const bcy = b.y + b.h / 2;
+  if (Math.abs(bcx - acx) >= Math.abs(bcy - acy)) {
+    const right = bcx > acx;
+    const x1 = right ? a.x + a.w : a.x;
+    const x2 = right ? b.x : b.x + b.w;
+    const k = (x2 - x1) / 2;
+    return `M${x1} ${acy} C${x1 + k} ${acy} ${x2 - k} ${bcy} ${x2} ${bcy}`;
+  }
+  const down = bcy > acy;
+  const y1 = down ? a.y + a.h : a.y;
+  const y2 = down ? b.y : b.y + b.h;
+  // Si las cajas se solapan en horizontal, línea recta por el centro de la más estrecha
+  const from = Math.max(a.x, b.x) + 16;
+  const to = Math.min(a.x + a.w, b.x + b.w) - 16;
+  if (from <= to) {
+    const x = Math.min(Math.max(a.w <= b.w ? acx : bcx, from), to);
+    return `M${x} ${y1} L${x} ${y2}`;
+  }
+  const k = (y2 - y1) / 2;
+  return `M${acx} ${y1} C${acx} ${y1 + k} ${bcx} ${y2 - k} ${bcx} ${y2}`;
+}
+
+const layouts = [desktop, mobile];
+const description =
+  'Diagrama ilustrativo de una solución en la que las aplicaciones (web, app móvil y panel interno) ' +
+  'se conectan a una API, que trabaja con una base de datos y, cuando corresponde, con servicios de IA, ' +
+  'automatización y herramientas externas como CRM, ERP o correo. ' +
+  'Dónde se aloja cada pieza (nube o servidores propios) depende de cada proyecto.';
+---
+
+<figure class="arch m-0" data-arch>
+  {layouts.map((layout) => (
+    <svg
+      class={layout.className}
+      data-layout={layout.id}
+      viewBox={`0 0 ${layout.viewBox[0]} ${layout.viewBox[1]}`}
+      width="100%"
+      role="img"
+      aria-labelledby={`arch-t-${layout.id} arch-d-${layout.id}`}
+    >
+      <title id={`arch-t-${layout.id}`}>Arquitectura ilustrativa de un proyecto</title>
+      <desc id={`arch-d-${layout.id}`}>{description}</desc>
+
+      <g class="arch-node" style="--d:1">
+        <rect
+          class="arch-cloud"
+          x={layout.cloud.x}
+          y={layout.cloud.y}
+          width={layout.cloud.w}
+          height={layout.cloud.h}
+          rx="10"
+        />
+        <text class="arch-cloud-label" x={layout.cloud.x + 14} y={layout.cloud.y + 22}>
+          {'// nube o servidores propios'}
+        </text>
+      </g>
+
+      {edges.map((edge) => {
+        const d = connect(layout.boxes[edge.from], layout.boxes[edge.to]);
+        return (
+          <g style={`--d:${edge.order}`}>
+            <path class:list={['arch-edge', edge.dashed && 'is-dashed']} d={d} pathLength="1" />
+            {!edge.dashed && <path class="arch-pulse" d={d} pathLength="1" />}
+          </g>
+        );
+      })}
+
+      {(Object.keys(nodes) as NodeId[]).map((id) => {
+        const node = nodes[id];
+        const box = layout.boxes[id];
+        return (
+          <g class:list={['arch-node', node.core && 'is-core']} style={`--d:${node.order}`}>
+            <rect class="arch-box" x={box.x} y={box.y} width={box.w} height={box.h} rx="6" />
+            <text class="arch-label" x={box.x + 16} y={box.y + box.h / 2 - 3}>
+              {node.label}
+            </text>
+            <text class="arch-sub" x={box.x + 16} y={box.y + box.h / 2 + 17}>
+              {node.sub}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  ))}
+  <figcaption class="mt-4 font-mono text-xs text-muted">
+    Arquitectura ilustrativa: así suelen encajar las piezas de un proyecto. No representa la
+    infraestructura de un cliente.
+  </figcaption>
+</figure>
+
+<style>
+  .arch svg {
+    height: auto;
+    overflow: visible;
+  }
+  .arch-cloud {
+    fill: rgb(255 255 255 / 0.55);
+    stroke: #b9c4d3;
+    stroke-width: 1.5;
+    stroke-dasharray: 6 6;
+  }
+  .arch-cloud-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    fill: var(--color-muted);
+  }
+  .arch-box {
+    fill: #fff;
+    stroke: var(--color-line-strong);
+    stroke-width: 1.5;
+  }
+  .arch-label {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    fill: var(--color-ink);
+  }
+  .arch-sub {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    fill: var(--color-muted);
+  }
+  /* En móvil (1:1 con la pantalla) el subtítulo baja un punto para caber en cajas de 164 px */
+  [data-layout='v'] .arch-sub {
+    font-size: 10.5px;
+  }
+  .is-core .arch-box {
+    fill: var(--color-ink);
+    stroke: var(--color-ink);
+  }
+  .is-core .arch-label {
+    fill: #fff;
+  }
+  .is-core .arch-sub {
+    fill: var(--color-mist);
+  }
+  .arch-edge {
+    fill: none;
+    stroke: var(--color-field);
+    stroke-width: 1.75;
+  }
+  .arch-edge.is-dashed {
+    stroke-dasharray: 0.02 0.02;
+  }
+  .arch-pulse {
+    fill: none;
+    stroke: var(--color-brand);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 0.06 1;
+    opacity: 0;
+  }
+
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .arch-node {
+      transition:
+        opacity 0.5s var(--ease-out-soft),
+        transform 0.5s var(--ease-out-soft);
+      transition-delay: calc(var(--d) * 200ms);
+    }
+    .arch-edge:not(.is-dashed) {
+      stroke-dasharray: 1;
+      transition: stroke-dashoffset 0.7s ease-out;
+      transition-delay: calc(var(--d) * 200ms + 150ms);
+    }
+    .arch-edge.is-dashed {
+      transition: opacity 0.5s ease;
+      transition-delay: calc(var(--d) * 200ms + 300ms);
+    }
+    [data-arch]:not(.is-in) .arch-node {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    [data-arch]:not(.is-in) .arch-edge:not(.is-dashed) {
+      stroke-dashoffset: 1;
+    }
+    [data-arch]:not(.is-in) .arch-edge.is-dashed {
+      opacity: 0;
+    }
+    [data-arch].is-in .arch-pulse {
+      animation: arch-run 1.8s ease-in-out 3;
+      animation-delay: calc(1.5s + var(--d) * 0.35s);
+    }
+  }
+
+  @keyframes arch-run {
+    0% {
+      opacity: 0;
+      stroke-dashoffset: 0.06;
+    }
+    12%,
+    88% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -1;
+    }
+  }
+</style>

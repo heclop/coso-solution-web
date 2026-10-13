@@ -1,0 +1,333 @@
+---
+/**
+ * IA aplicada: la única sección oscura completa. Explica qué es un agente, qué se evalúa
+ * antes de proponerlo y muestra una traza paso a paso (ilustrativa, no un caso real).
+ */
+import { ai, automation } from '../../data/home';
+import Eyebrow from '../ui/Eyebrow.astro';
+import TechLogo from '../ui/TechLogo.astro';
+---
+
+<section
+  id="ia"
+  aria-labelledby="t-ia"
+  class="relative isolate overflow-hidden bg-ink py-[clamp(72px,9vw,128px)] text-white"
+>
+  <!-- Misma retícula que el hero (continuidad visual), estática y desvanecida desde la esquina -->
+  <div
+    class="ia-grid blueprint pointer-events-none absolute inset-0 -z-10"
+    aria-hidden="true"
+  ></div>
+  <div class="wrap">
+    <div data-reveal>
+      <Eyebrow class="mb-5 text-sky">{ai.eyebrow}</Eyebrow>
+      <h2
+        id="t-ia"
+        class="max-w-[900px] text-[clamp(36px,4.6vw,64px)] leading-[1.04] font-extrabold tracking-[-0.025em]"
+      >
+        {ai.titleLead}
+        <br />
+        {ai.titleRest}
+      </h2>
+    </div>
+
+    <div class="mt-14 flex flex-wrap gap-[clamp(40px,6vw,88px)]">
+      <div class="min-w-0 flex-[1_1_400px]" data-reveal>
+        {ai.paragraphs.map((paragraph, index) => (
+          <p
+            class:list={[
+              'leading-[1.6] text-mist-strong',
+              index === 0 ? 'text-[19px]' : 'mt-4 text-[17px]',
+            ]}
+          >
+            {paragraph}
+          </p>
+        ))}
+        <h3 class="mt-10 mb-4 text-lg font-semibold">{ai.checklistTitle}</h3>
+        <ul class="border-t border-ink-line">
+          {ai.checklist.map((item) => (
+            <li class="border-b border-ink-line py-3.5 text-mist-strong">{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <figure
+        class="trace m-0 min-w-0 flex-[1_1_440px] self-start rounded-md border border-ink-line bg-ink-deep"
+        data-trace
+      >
+        <figcaption class="flex justify-between gap-3 border-b border-ink-line px-5 py-3.5 font-mono text-xs tracking-[0.04em] text-[#9DB0C9] uppercase">
+          <span>{ai.traceCaption}</span>
+          <span>Ilustrativo</span>
+        </figcaption>
+        <ol class="flex flex-col gap-[18px] p-5 font-mono text-[13.5px] leading-[1.6]">
+          {ai.trace.map((step, index) => (
+            <li
+              class:list={[
+                'trace-step flex gap-4',
+                step.review && 'border-t border-dashed border-[#2E4466] pt-4',
+              ]}
+              style={`--s:${index}`}
+            >
+              <span class:list={['w-20 flex-none', step.review ? 'text-amber' : 'text-code-dim']}>
+                {step.label}
+              </span>
+              <span class={step.review || index === 0 ? 'text-white' : 'text-mist-strong'}>
+                {step.text}
+                {step.detail && <span class="block text-code-dim">{step.detail}</span>}
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p class="border-t border-ink-line px-5 py-3.5 text-[13px] text-[#9DB0C9]">
+          {ai.traceNote}
+        </p>
+      </figure>
+    </div>
+
+    <!-- ───── Automatización con n8n ───── -->
+    <div
+      id="automatizacion"
+      class="mt-[clamp(64px,8vw,112px)] flex flex-wrap items-center gap-[clamp(40px,6vw,88px)] border-t border-ink-line pt-[clamp(56px,7vw,96px)]"
+    >
+      <div class="min-w-0 flex-[1_1_380px]" data-reveal>
+        <Eyebrow class="mb-4 text-sky">{automation.eyebrow}</Eyebrow>
+        <h3 class="text-[clamp(28px,3vw,40px)] leading-[1.1] font-bold tracking-[-0.02em] text-white">
+          {automation.title}
+        </h3>
+        {automation.paragraphs.map((paragraph, index) => (
+          <p
+            class:list={[
+              'leading-[1.65]',
+              index === 0 ? 'mt-5 text-[17px] text-mist-strong' : 'mt-4 text-base text-mist',
+            ]}
+          >
+            {paragraph}
+          </p>
+        ))}
+      </div>
+
+      <figure
+        class="m-0 min-w-0 flex-[1.2_1_460px] rounded-md border border-ink-line bg-ink-deep"
+        data-flow
+      >
+        <figcaption class="flex items-center justify-between gap-3 border-b border-ink-line px-5 py-3.5 font-mono text-xs tracking-[0.04em] text-[#9DB0C9] uppercase">
+          <span class="flex items-center gap-2.5">
+            <TechLogo name="n8n" size={16} brand />
+            {automation.flowCaption}
+          </span>
+          <span>Ilustrativo</span>
+        </figcaption>
+
+        <ol class="flow-n8n grid gap-3 p-5 sm:grid-cols-[1fr_auto_1fr_auto_1.25fr] sm:items-center">
+          <li class="flow-node-n8n" style="--s:0">
+            <p class="font-mono text-[11px] tracking-[0.06em] text-code-dim uppercase">
+              {automation.trigger.label}
+            </p>
+            <p class="mt-1 text-sm text-white">{automation.trigger.text}</p>
+          </li>
+          <li class="flow-wire" aria-hidden="true" style="--s:0">
+            <span></span>
+          </li>
+          <li class="flow-node-n8n is-core" style="--s:1">
+            <p class="font-mono text-[11px] tracking-[0.06em] text-[#F28AA8] uppercase">
+              {automation.step.label}
+            </p>
+            <p class="mt-1 text-sm text-white">{automation.step.text}</p>
+          </li>
+          <li class="flow-wire" aria-hidden="true" style="--s:1">
+            <span></span>
+          </li>
+          <li>
+            <ul class="flow-outputs flex flex-col gap-2">
+              {automation.outputs.map((output, index) => (
+                <li class="flow-node-n8n" style={`--s:${index + 2}`}>
+                  <p class="font-mono text-[11px] tracking-[0.06em] text-code-dim uppercase">
+                    {output.label}
+                  </p>
+                  <p class="mt-1 text-sm text-white">{output.text}</p>
+                </li>
+              ))}
+            </ul>
+          </li>
+        </ol>
+        <p class="border-t border-ink-line px-5 py-3.5 text-[13px] text-[#9DB0C9]">
+          {automation.flowNote}
+        </p>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* La traza aparece línea a línea al entrar en pantalla (.is-in lo pone el IntersectionObserver) */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .trace-step {
+      transition:
+        opacity 0.45s var(--ease-out-soft),
+        transform 0.45s var(--ease-out-soft);
+      transition-delay: calc(var(--s) * 520ms + 200ms);
+    }
+    [data-trace]:not(.is-in) .trace-step {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+</style>
+
+<style>
+  /* ───── Diagrama de flujo n8n ───── */
+  .flow-node-n8n {
+    border: 1px solid var(--color-ink-line);
+    border-radius: var(--radius-ui);
+    background: var(--color-ink);
+    padding: 0.625rem 0.75rem;
+  }
+  .flow-node-n8n.is-core {
+    border-color: rgb(234 75 113 / 0.6);
+    box-shadow: 0 0 0 4px rgb(234 75 113 / 0.1);
+  }
+  /* Conexión: vertical en móvil, horizontal desde 640 px */
+  .flow-wire {
+    position: relative;
+    width: 2px;
+    height: 1.25rem;
+    margin-left: 1.25rem;
+  }
+  .flow-wire span {
+    position: absolute;
+    inset: 0;
+    background: #2e4466;
+    transform-origin: top;
+  }
+  .flow-wire span::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+    border-radius: 50%;
+    background: var(--color-sky);
+    box-shadow: 0 0 0 3px rgb(92 196 247 / 0.2);
+    opacity: 0;
+  }
+  @media (min-width: 40rem) {
+    .flow-wire {
+      width: 1.75rem;
+      height: 2px;
+      margin-left: 0;
+    }
+    .flow-wire span {
+      transform-origin: left;
+    }
+    .flow-wire span::after {
+      top: 50%;
+      left: 0;
+    }
+  }
+
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .flow-node-n8n,
+    .flow-wire span {
+      transition:
+        opacity 0.5s var(--ease-out-soft),
+        transform 0.5s var(--ease-out-soft);
+    }
+    .flow-node-n8n {
+      transition-delay: calc(var(--s) * 240ms + 200ms);
+    }
+    .flow-wire span {
+      transition-delay: calc(var(--s) * 240ms + 380ms);
+    }
+    [data-flow]:not(.is-in) .flow-node-n8n {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    [data-flow]:not(.is-in) .flow-wire span {
+      transform: scale(0);
+    }
+    [data-flow].is-in .flow-wire span::after {
+      animation: wire-pulse-y 1.1s ease-in-out 3;
+      animation-delay: calc(1.6s + var(--s) * 0.55s);
+    }
+    @media (min-width: 40rem) {
+      [data-flow].is-in .flow-wire span::after {
+        animation-name: wire-pulse-x;
+      }
+    }
+  }
+
+  @keyframes wire-pulse-y {
+    0% {
+      opacity: 0;
+      transform: translateY(0);
+    }
+    20%,
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(1.25rem);
+    }
+  }
+  @keyframes wire-pulse-x {
+    0% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+    20%,
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(1.75rem);
+    }
+  }
+</style>
+
+<style>
+  /* Llave de salida: desde 640 px, una línea vertical reparte el flujo a las tres salidas */
+  @media (min-width: 40rem) {
+    .flow-outputs {
+      position: relative;
+      padding-left: 1rem;
+    }
+    .flow-outputs > li {
+      position: relative;
+    }
+    .flow-outputs > li::before {
+      content: '';
+      position: absolute;
+      left: -1rem;
+      top: 50%;
+      width: 1rem;
+      height: 2px;
+      background: #2e4466;
+    }
+    /* Tramo vertical por salida (la mitad del hueco de 0.5rem a cada lado): de la primera a la última */
+    .flow-outputs > li::after {
+      content: '';
+      position: absolute;
+      left: -1rem;
+      top: -0.25rem;
+      bottom: -0.25rem;
+      width: 2px;
+      background: #2e4466;
+    }
+    .flow-outputs > li:first-child::after {
+      top: 50%;
+    }
+    .flow-outputs > li:last-child::after {
+      bottom: 50%;
+    }
+  }
+</style>
+
+<style>
+  .ia-grid {
+    mask-image: radial-gradient(ellipse 55% 60% at 85% 12%, #000 10%, transparent 70%);
+  }
+</style>

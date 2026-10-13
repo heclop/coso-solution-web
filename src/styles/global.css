@@ -1,0 +1,297 @@
+@import 'tailwindcss';
+
+/* ───────── Tokens de diseño (salen del logo y del diseño de referencia) ───────── */
+@theme {
+  /* Marca */
+  --color-ink: #0b1b33; /* azul marino del logotipo: texto y fondos oscuros */
+  --color-ink-deep: #06111f; /* paneles de código sobre fondo oscuro */
+  --color-ink-line: #22344f; /* líneas sobre fondo oscuro */
+  --color-brand: #1f5fe0; /* azul de acción: botones y enlaces (5.1:1 sobre blanco) */
+  --color-sky: #5cc4f7; /* acento cian, solo sobre fondo oscuro */
+
+  /* Neutros */
+  --color-body: #33465f; /* texto de párrafo */
+  --color-muted: #4f6683; /* texto secundario (color de «SOLUTION» en el logo) */
+  --color-paper: #f3f5f8; /* fondo alterno */
+  --color-line: #d6dce5;
+  --color-line-strong: #c9d2de;
+  --color-field: #9aa9bd; /* borde de campos (3:1 sobre blanco) */
+  --color-mist: #b6c3d6; /* texto secundario sobre fondo oscuro */
+  --color-mist-strong: #dce5f2;
+  --color-code-dim: #7f93ae;
+
+  /* Acentos de código */
+  --color-amber: #f2b36b;
+  --color-rust: #9a4a12;
+
+  /* Breakpoint del menú: en la referencia los enlaces se ocultan ≤ 860 px */
+  --breakpoint-nav: 64rem; /* 1024px: con «IA y automatización» y «Preguntas frecuentes» la nav necesita ~985px */
+
+  --container-site: 75rem; /* 1200px */
+  --radius-ui: 4px;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Las variables --font-* las genera el componente <Font /> de Astro en tiempo de build */
+@theme inline {
+  --font-sans: var(--font-schibsted);
+  --font-mono: var(--font-jetbrains);
+}
+
+/* ───────── Base ───────── */
+@layer base {
+  html {
+    scroll-padding-top: 5.5rem; /* altura del header fijo + aire */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    @apply bg-white font-sans text-[17px] leading-[1.6] text-ink antialiased;
+  }
+
+  ::selection {
+    @apply bg-brand text-white;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ───────── Utilidades propias ───────── */
+@utility wrap {
+  margin-inline: auto;
+  width: 100%;
+  max-width: calc(var(--container-site) + 2 * clamp(1rem, 4vw, 3rem));
+  padding-inline: clamp(1rem, 4vw, 3rem);
+}
+
+/* El recorte horizontal va en el contenedor, no en <body> (no rompe position: sticky) */
+@utility site {
+  overflow-x: clip;
+}
+
+/* ───────── Componentes ui/ ─────────
+   Estilos base con :where() (especificidad 0) dentro de @layer components:
+   cualquier utilidad de Tailwind puesta desde la sección siempre gana. */
+@layer components {
+  :where(.btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding-inline: 1.25rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-ui);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s var(--ease-out-soft);
+  }
+  :where(.btn--lg) {
+    min-height: 3.25rem;
+    padding-inline: 1.75rem;
+    font-size: 1.0625rem;
+  }
+  :where(.btn--primary) {
+    background: var(--color-brand);
+    color: #fff;
+  }
+  :where(.btn--primary:hover) {
+    background: #174cb8;
+    color: #fff;
+  }
+  :where(.btn--dark) {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  :where(.btn--dark:hover) {
+    background: var(--color-brand);
+    color: #fff;
+  }
+  :where(.btn--outline) {
+    border-color: var(--color-field);
+    color: var(--color-ink);
+    background: transparent;
+  }
+  :where(.btn--outline:hover) {
+    border-color: var(--color-ink);
+  }
+  :where(.btn .icon) {
+    transition: transform 0.25s var(--ease-out-soft);
+  }
+  :where(.btn:hover .icon) {
+    transform: translateX(3px);
+  }
+
+  /* Enlace con subrayado que se retira al pasar el ratón y flecha que avanza */
+  :where(.link-arrow) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+  :where(.link-arrow > span) {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+    padding-bottom: 2px;
+    transition: background-size 0.3s var(--ease-out-soft);
+  }
+  :where(.link-arrow:hover > span) {
+    background-size: 0% 1px;
+    background-position: 100% 100%;
+  }
+  :where(.link-arrow .icon) {
+    transition: transform 0.25s var(--ease-out-soft);
+  }
+  :where(.link-arrow:hover .icon) {
+    transform: translateX(4px);
+  }
+
+  :where(.eyebrow) {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  :where(.icon-btn) {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-ui);
+    background: #fff;
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+}
+
+/* ───────── Movimiento ─────────
+   Reglas:
+   - Solo transform/opacity y siempre dentro de prefers-reduced-motion: no-preference.
+   - Revelado UNA sola vez: el único IntersectionObserver (BaseLayout) añade .is-in al entrar
+     en pantalla y deja de observar. Sin JS (media query scripting) nada se oculta.
+   - Lo ligado al scroll (animation-timeline) se reserva para lo que DEBE seguir al scroll:
+     la barra de lectura, la barra del proceso y el parallax de pocas fotos (solo ≥ 768 px).
+   - Nada de content-visibility en secciones: rompe los saltos a anclas. */
+
+/* Línea superior que se "dibuja" de izquierda a derecha (p. ej. tabla de servicios) */
+[data-draw]::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--color-ink);
+  transform-origin: left;
+}
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    transition:
+      opacity 0.7s var(--ease-out-soft),
+      transform 0.7s var(--ease-out-soft);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  [data-reveal]:not(.is-in) {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  /* Grupos: los hijos directos entran escalonados (un solo disparador por bloque) */
+  [data-reveal-group] > * {
+    transition:
+      opacity 0.6s var(--ease-out-soft),
+      transform 0.6s var(--ease-out-soft);
+  }
+  [data-reveal-group] > :nth-child(2) {
+    transition-delay: 90ms;
+  }
+  [data-reveal-group] > :nth-child(3) {
+    transition-delay: 180ms;
+  }
+  [data-reveal-group] > :nth-child(4) {
+    transition-delay: 270ms;
+  }
+  [data-reveal-group] > :nth-child(n + 5) {
+    transition-delay: 360ms;
+  }
+  [data-reveal-group]:not(.is-in) > * {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  [data-draw]::before {
+    transition: transform 1.1s var(--ease-out-soft) 0.1s;
+  }
+  [data-draw]:not(.is-in)::before {
+    transform: scaleX(0);
+  }
+}
+
+/* Parallax moderado solo en fotos marcadas con data-parallax y solo en pantallas medianas+ */
+@media (prefers-reduced-motion: no-preference) and (min-width: 48rem) {
+  @supports (animation-timeline: view()) {
+    [data-parallax] img {
+      scale: 1.12;
+      animation: photo-drift linear both;
+    }
+    /* animation-timeline/range en regla aparte y más específica: si van junto al shorthand, el
+         minificador los fusiona en «animation: … scroll()», forma que Chrome descarta entera. */
+    [data-parallax][data-parallax] img {
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+
+/* Pulsación: respuesta táctil discreta en botones */
+@media (prefers-reduced-motion: no-preference) {
+  :where(.btn, .icon-btn):active {
+    transform: scale(0.97);
+  }
+}
+
+/* Retícula técnica compartida (hero y sección de IA): mismo motivo gráfico → continuidad */
+@utility blueprint {
+  background-image:
+    linear-gradient(rgb(92 196 247 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(92 196 247 / 0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@keyframes photo-drift {
+  from {
+    transform: translateY(-4%);
+  }
+  to {
+    transform: translateY(4%);
+  }
+}

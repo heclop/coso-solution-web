@@ -1,0 +1,82 @@
+---
+/**
+ * Servicios como tabla editorial: cada fila = área · descripción · trabajos típicos.
+ * Una fila puede llevar imagen a todo el ancho (campo opcional `image` en los datos).
+ */
+import { images } from '../../assets/images';
+import { services, servicesIntro } from '../../data/home';
+import LinkArrow from '../ui/LinkArrow.astro';
+import Photo from '../ui/Photo.astro';
+---
+
+<section
+  id="servicios"
+  aria-labelledby="t-servicios"
+  class="pt-[clamp(72px,9vw,128px)] pb-[clamp(56px,6vw,88px)]"
+>
+  <div class="wrap">
+    <div class="mb-12 flex flex-wrap items-end justify-between gap-6" data-reveal>
+      <h2
+        id="t-servicios"
+        class="max-w-[680px] text-[clamp(34px,4vw,56px)] leading-[1.05] font-extrabold tracking-[-0.025em]"
+      >
+        {servicesIntro.title}
+      </h2>
+      <p class="max-w-[380px] text-base text-body">{servicesIntro.text}</p>
+    </div>
+
+    <div class="relative" data-draw>
+      {services.map((service) => (
+        <article
+          id={service.id}
+          class="service-row grid grid-cols-1 gap-x-12 md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-y-4 border-b border-line py-9"
+          data-reveal
+        >
+          <div>
+            <p class="mb-2 font-mono text-[13px] text-brand">
+              {service.number} / {service.area}
+            </p>
+            <h3 class="text-[26px] leading-[1.2] font-bold">{service.name}</h3>
+          </div>
+          <div>
+            <p class="text-body">{service.description}</p>
+            {service.more && (
+              <LinkArrow href={service.more.href} class="mt-2 text-brand">
+                {service.more.label}
+              </LinkArrow>
+            )}
+          </div>
+          <div>
+            <p class="mb-2 text-sm font-semibold text-muted">{servicesIntro.examplesTitle}</p>
+            <ul class="list-disc space-y-0.5 pl-[18px] text-base marker:text-brand">
+              {service.examples.map((example) => (
+                <li>{example}</li>
+              ))}
+            </ul>
+          </div>
+          {service.note && (
+            <p class="col-span-full mt-2 flex gap-3 rounded-ui bg-paper px-4 py-3 text-[15px] text-body">
+              <span class="flex-none font-mono text-[13px] leading-[1.75] text-brand">Nota</span>
+              <span>{service.note}</span>
+            </p>
+          )}
+          {service.image && (
+            <figure class="col-span-full mt-6">
+              <div class="photo-frame overflow-hidden rounded-md bg-ink">
+                <Photo
+                  src={images[service.image.key]}
+                  alt={service.image.alt}
+                  sizes="(min-width: 1296px) 1200px, calc(100vw - 2 * clamp(16px, 4vw, 48px))"
+                  class="aspect-[16/9] h-auto w-full object-cover"
+                />
+              </div>
+              <figcaption class="mt-3 font-mono text-xs text-muted">
+                {service.image.caption}
+              </figcaption>
+            </figure>
+          )}
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,39 @@
+---
+/** Situaciones reconocibles: lista editorial numerada (deliberadamente sin tarjetas). */
+import { situations, situationsIntro } from '../../data/home';
+import LinkArrow from '../ui/LinkArrow.astro';
+---
+
+<section
+  aria-labelledby="t-situaciones"
+  class="border-y border-[#E3E8EF] bg-paper py-[clamp(64px,8vw,112px)]"
+>
+  <div class="wrap flex flex-wrap gap-[clamp(32px,6vw,96px)]">
+    <div class="min-w-0 flex-[1_1_300px]" data-reveal>
+      <h2
+        id="t-situaciones"
+        class="text-[clamp(30px,3.2vw,42px)] leading-[1.1] font-bold tracking-[-0.02em]"
+      >
+        {situationsIntro.title}
+      </h2>
+      <p class="mt-5 max-w-[360px] text-body">{situationsIntro.text}</p>
+    </div>
+
+    <ol class="flex min-w-0 flex-[2_1_560px] flex-col" data-reveal-group>
+      {situations.map((item, index) => (
+        <li class="rule-row flex gap-6 border-t border-line-strong py-6 last:border-b">
+          <span class="w-7 flex-none pt-2 font-mono text-[13px] text-muted">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <div>
+            <p class="text-[clamp(21px,2vw,26px)] leading-[1.3] font-semibold">«{item.quote}»</p>
+            <p class="mt-2 max-w-[600px] text-base text-body">{item.text}</p>
+            <LinkArrow href={item.link.href} class="mt-2 text-[15px] text-brand">
+              {item.link.label}
+            </LinkArrow>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

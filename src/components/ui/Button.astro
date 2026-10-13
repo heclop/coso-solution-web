@@ -1,0 +1,44 @@
+---
+/**
+ * Botón de la marca. Con `href` se renderiza <a>; sin él, <button>.
+ * `type` se separa del resto de atributos: si viajara en ...rest saldría duplicado
+ * y el navegador usaría el primero.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+import Icon from './Icon.astro';
+
+type Variant = 'primary' | 'dark' | 'outline';
+
+interface Props extends Omit<HTMLAttributes<'a'>, 'type'> {
+  href?: string | undefined;
+  variant?: Variant;
+  size?: 'md' | 'lg';
+  type?: 'button' | 'submit' | 'reset';
+  arrow?: boolean;
+}
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  arrow = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = ['btn', `btn--${variant}`, size === 'lg' && 'btn--lg', className];
+---
+
+{href ? (
+  <a href={href} class:list={classes} {...rest}>
+    <slot />
+    {arrow && <Icon name="arrow-right" />}
+  </a>
+) : (
+  <button type={type} class:list={classes} {...rest}>
+    <slot />
+    {arrow && <Icon name="arrow-right" />}
+  </button>
+)}

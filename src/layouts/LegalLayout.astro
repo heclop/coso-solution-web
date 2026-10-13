@@ -1,0 +1,80 @@
+---
+/**
+ * Layout de las páginas legales escritas en Markdown (src/pages/*.md).
+ * En un .md, el bloque frontmatter (entre ---) define `layout` y estos datos,
+ * que llegan aquí como Astro.props.frontmatter; el contenido entra por <slot />.
+ */
+import Footer from '../components/layout/Footer.astro';
+import Header from '../components/layout/Header.astro';
+import MobileMenu from '../components/layout/MobileMenu.astro';
+import Eyebrow from '../components/ui/Eyebrow.astro';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description: string;
+    updated: string;
+  };
+}
+
+const { title, description, updated } = Astro.props.frontmatter;
+---
+
+<BaseLayout title={`${title} · Coso Solution`} description={description}>
+  <Header />
+  <MobileMenu />
+  <main id="contenido" class="wrap py-[clamp(56px,8vw,112px)]">
+    <article class="legal mx-auto max-w-[720px]">
+      <Eyebrow class="mb-4">Información legal</Eyebrow>
+      <h1 class="text-[clamp(34px,4.4vw,56px)] leading-[1.05] font-extrabold tracking-[-0.025em]">
+        {title}
+      </h1>
+      <p class="mt-4 font-mono text-[13px] text-muted">Última actualización: {updated}</p>
+      <div class="mt-10 border-t border-line pt-8">
+        <slot />
+      </div>
+    </article>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* Tipografía del contenido Markdown (sin plugin: solo lo que estas páginas usan) */
+  .legal :global(h2) {
+    margin: 2.5rem 0 0.75rem;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .legal :global(p),
+  .legal :global(li) {
+    color: var(--color-body);
+  }
+  .legal :global(p + p) {
+    margin-top: 1rem;
+  }
+  .legal :global(ul) {
+    margin: 0.75rem 0 1rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+  .legal :global(li + li) {
+    margin-top: 0.4rem;
+  }
+  .legal :global(a) {
+    color: var(--color-brand);
+    text-underline-offset: 3px;
+  }
+  .legal :global(strong) {
+    color: var(--color-ink);
+  }
+  .legal :global(blockquote) {
+    margin: 0 0 2rem;
+    border-left: 3px solid var(--color-amber);
+    background: var(--color-paper);
+    padding: 1rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+</style>

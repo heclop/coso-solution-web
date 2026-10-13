@@ -1,0 +1,32 @@
+---
+/**
+ * Datos estructurados de la home. Un <script type="application/ld+json"> es un bloque de datos:
+ * el navegador no lo ejecuta, así que la CSP no lo bloquea.
+ * `is:inline` evita que Astro intente procesarlo como JavaScript.
+ */
+import { contact } from '../../data/contact';
+import { services } from '../../data/home';
+import { site } from '../../data/site';
+import { buildJsonLd, serializeJsonLd } from '../../lib/jsonld';
+
+const url = (Astro.site ?? new URL(site.url)).origin;
+
+const json = serializeJsonLd(
+  buildJsonLd({
+    url,
+    name: site.name,
+    description: site.description,
+    language: site.locale,
+    logoUrl: `${url}/icon-512.png`,
+    imageUrl: `${url}${site.ogImage}`,
+    email: contact.email,
+    telephone: contact.phoneDisplay,
+    city: site.city,
+    country: site.country,
+    sameAs: site.sameAs,
+    services: services.map(({ name, description }) => ({ name, description })),
+  }),
+);
+---
+
+<script is:inline type="application/ld+json" set:html={json} />

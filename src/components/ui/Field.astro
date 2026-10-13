@@ -1,0 +1,67 @@
+---
+/**
+ * Campo de formulario con etiqueta visible y mensaje de error asociado
+ * (aria-describedby). El script del formulario muestra el error y pone aria-invalid.
+ */
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  optional?: boolean;
+  type?: 'text' | 'email' | 'tel';
+  autocomplete?: string;
+  textarea?: boolean;
+  rows?: number;
+  placeholder?: string | undefined;
+  required?: boolean;
+  /** Atributos extra para el contenedor (p. ej. data-phone-field hidden). */
+  wrapper?: Record<string, string | boolean>;
+}
+
+const {
+  id,
+  name,
+  label,
+  optional = false,
+  type = 'text',
+  autocomplete,
+  textarea = false,
+  rows = 5,
+  placeholder,
+  required = false,
+  wrapper = {},
+} = Astro.props;
+
+const errorId = `${id}-error`;
+const fieldClass =
+  'w-full rounded-ui border border-field bg-white px-3.5 text-ink transition-[border-color,box-shadow] duration-200 hover:border-ink focus:border-brand focus:shadow-[0_0_0_3px_rgba(31,95,224,0.18)] focus:outline-none aria-[invalid=true]:border-[#B42318] aria-[invalid=true]:shadow-[0_0_0_3px_rgba(180,35,24,0.14)]';
+---
+
+<div class="flex flex-col gap-2" {...wrapper}>
+  <label for={id} class="text-[15px] font-semibold">
+    {label} {optional && <span class="font-normal text-muted">(opcional)</span>}
+  </label>
+  {textarea ? (
+    <textarea
+      id={id}
+      name={name}
+      rows={rows}
+      required={required}
+      placeholder={placeholder}
+      aria-describedby={errorId}
+      class={`${fieldClass} resize-y py-3 placeholder:text-muted`}
+    />
+  ) : (
+    <input
+      id={id}
+      name={name}
+      type={type}
+      autocomplete={autocomplete}
+      required={required}
+      placeholder={placeholder}
+      aria-describedby={errorId}
+      class={`${fieldClass} min-h-12`}
+    />
+  )}
+  <p id={errorId} class="field-error text-sm font-medium text-[#B42318]" hidden></p>
+</div>

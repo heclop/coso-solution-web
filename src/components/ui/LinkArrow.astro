@@ -1,0 +1,21 @@
+---
+/** Enlace de texto con subrayado animado y flecha. Los externos abren con rel="noopener". */
+import type { HTMLAttributes } from 'astro/types';
+
+import Icon from './Icon.astro';
+
+interface Props extends HTMLAttributes<'a'> {
+  href: string;
+  external?: boolean;
+}
+
+const { href, external = false, class: className, ...rest } = Astro.props;
+const externalAttrs = external ? { target: '_blank', rel: 'noopener' } : {};
+---
+
+<a href={href} class:list={['link-arrow', className]} {...externalAttrs} {...rest}>
+  <span>
+    <slot />
+  </span>
+  <Icon name={external ? 'arrow-up-right' : 'arrow-right'} size={16} />
+</a>

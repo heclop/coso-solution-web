@@ -1,0 +1,70 @@
+---
+/**
+ * Metadatos de cada página: title, description, canonical, robots, Open Graph y Twitter.
+ * Las páginas noindex (previews, 404) no emiten canonical ni og:url.
+ */
+import { SITE_INDEXABLE } from 'astro:env/server';
+
+import { site } from '../../data/site';
+import { canonicalPath } from '../../lib/links';
+
+interface Props {
+  title?: string | undefined;
+  description?: string | undefined;
+  /** Fuerza noindex aunque el sitio sea indexable (p. ej. la 404). */
+  noindex?: boolean;
+  /** Ruta absoluta desde la raíz, p. ej. /og-image.jpg */
+  image?: string | undefined;
+  imageAlt?: string | undefined;
+}
+
+const {
+  title = site.title,
+  description = site.description,
+  noindex = false,
+  image = site.ogImage,
+  imageAlt = site.ogImageAlt,
+} = Astro.props;
+
+if (import.meta.env.DEV) {
+  if (title.length > 60) console.warn(`[SEO] title de ${title.length} caracteres (> 60): ${title}`);
+  if (description.length > 155)
+    console.warn(`[SEO] description de ${description.length} caracteres (> 155)`);
+}
+
+const indexable = SITE_INDEXABLE && !noindex;
+const base = Astro.site ?? new URL(site.url);
+const canonical = new URL(canonicalPath(Astro.url.pathname), base).href;
+const imageUrl = image ? new URL(image, base).href : undefined;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<meta
+  name="robots"
+  content={indexable ? 'index, follow, max-image-preview:large' : 'noindex, follow'}
+/>
+{indexable && <link rel="canonical" href={canonical} />}
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content={site.ogLocale} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+{indexable && <meta property="og:url" content={canonical} />}
+{imageUrl && (
+  <>
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
+  </>
+)}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}
+{imageUrl && <meta name="twitter:image:alt" content={imageAlt} />}
+
+<meta name="theme-color" content={site.themeColor} />

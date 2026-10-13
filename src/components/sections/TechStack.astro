@@ -1,0 +1,100 @@
+---
+/**
+ * Banda de tecnologías agrupadas por área. Logos monocromos (no compiten con el contenido)
+ * que toman su color de marca al pasar el ratón. El nombre siempre es texto visible:
+ * los logos son decorativos (aria-hidden) y no se usan como única fuente de información.
+ * Estática a propósito: un carrusel infinito sin pausa incumpliría WCAG 2.2.2.
+ */
+import { techStack } from '../../data/home';
+import { techIcons } from '../../data/tech-icons';
+import Eyebrow from '../ui/Eyebrow.astro';
+import TechLogo from '../ui/TechLogo.astro';
+---
+
+<section
+  aria-labelledby="t-stack"
+  class="border-y border-[#E3E8EF] bg-paper py-[clamp(56px,7vw,96px)]"
+>
+  <div class="wrap flex flex-wrap gap-[clamp(32px,5vw,80px)]">
+    <div class="min-w-0 flex-[1_1_260px]" data-reveal>
+      <Eyebrow class="mb-4 text-brand">{techStack.eyebrow}</Eyebrow>
+      <h2
+        id="t-stack"
+        class="text-[clamp(26px,2.6vw,34px)] leading-[1.15] font-bold tracking-[-0.015em]"
+      >
+        {techStack.title}
+      </h2>
+      <p class="mt-4 max-w-[320px] text-body">{techStack.text}</p>
+    </div>
+
+    <div
+      class="grid min-w-0 flex-[3_1_620px] grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-5"
+      data-reveal-group
+    >
+      {techStack.groups.map((group) => (
+        <div>
+          <!-- Altura de dos líneas: un rótulo largo no desalinea las reglas de las demás columnas -->
+          <h3 class="mb-4 flex min-h-[calc(2lh+0.5rem)] items-end border-b border-line-strong pb-2 font-mono text-[12px] font-medium tracking-[0.06em] text-muted uppercase">
+            <span>
+              <span aria-hidden="true">// </span>
+              {group.label}
+            </span>
+          </h3>
+          <ul class="flex flex-col gap-3.5">
+            {group.items.map((item) => {
+              const icon = item.icon ? techIcons[item.icon] : undefined;
+              return (
+                <li
+                  class="tech-item flex items-center gap-3"
+                  style={icon ? `--brand:${icon.color}` : ''}
+                >
+                  <span class="tech-logo grid size-9 flex-none place-items-center rounded-ui border border-line bg-white">
+                    {item.icon ? (
+                      <TechLogo name={item.icon} />
+                    ) : (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="20"
+                        height="20"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <ellipse cx="12" cy="6" rx="7" ry="3" />
+                        <path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
+                      </svg>
+                    )}
+                  </span>
+                  <span class="text-[15px] font-medium text-ink">{item.name}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .tech-logo {
+    color: var(--color-muted);
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s var(--ease-out-soft);
+  }
+  .tech-item:hover .tech-logo {
+    color: var(--brand, var(--color-brand));
+    border-color: currentColor;
+    transform: translateY(-2px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tech-item:hover .tech-logo {
+      transform: none;
+    }
+  }
+</style>

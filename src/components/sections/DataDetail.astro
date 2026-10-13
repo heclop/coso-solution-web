@@ -1,0 +1,50 @@
+---
+/** Cambio de ritmo tras los servicios: foto + panel oscuro con un fragmento SQL comentado. */
+import { images } from '../../assets/images';
+import { dataDetail } from '../../data/home';
+import Photo from '../ui/Photo.astro';
+---
+
+<section aria-labelledby="t-datos" class="pb-[clamp(72px,9vw,128px)]">
+  <div class="wrap flex flex-wrap items-stretch">
+    <div
+      data-parallax
+      class="photo-frame h-[340px] min-w-0 flex-[1_1_340px] overflow-hidden bg-ink md:h-[520px]"
+    >
+      <Photo
+        src={images.datos}
+        alt={dataDetail.imageAlt}
+        sizes="(min-width: 1024px) 540px, 100vw"
+        widths={[540, 720, 1080, 1280]}
+        class="h-full w-full object-cover object-[50%_15%]"
+      />
+    </div>
+    <div class="flex min-w-0 flex-[1.4_1_440px] flex-col justify-between gap-8 bg-ink p-[clamp(28px,4vw,56px)] text-white">
+      <div data-reveal>
+        <h2
+          id="t-datos"
+          class="text-[clamp(26px,2.6vw,34px)] leading-[1.15] font-bold tracking-[-0.015em]"
+        >
+          {dataDetail.title}
+        </h2>
+        <p class="mt-4 max-w-[480px] text-mist">{dataDetail.text}</p>
+      </div>
+      <pre
+        class="code-block overflow-x-auto rounded-ui border border-ink-line bg-ink-deep p-5 font-mono text-[13.5px] leading-[1.7] text-mist-strong"
+        tabindex="0"
+        aria-label="Ejemplo ilustrativo de consulta SQL"
+        data-reveal
+      ><code><span class="text-code-dim">-- Ejemplo: total de ventas por sucursal</span>
+<span class="text-sky">SELECT</span> sucursal, <span class="text-sky">SUM</span>(total)
+<span class="text-sky">FROM</span>   ventas
+<span class="text-sky">WHERE</span>  fecha <span class="text-sky">&gt;=</span> <span class="text-amber">'2026-09-01'</span>
+<span class="text-sky">GROUP BY</span> sucursal;</code></pre>
+      <p class="-mt-4 font-mono text-xs leading-[1.6] text-mist">
+        <span class="text-code-dim" aria-hidden="true">
+          //{' '}
+        </span>
+        {dataDetail.codeNote}
+      </p>
+    </div>
+  </div>
+</section>

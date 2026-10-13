@@ -1,0 +1,43 @@
+---
+/** Preguntas frecuentes con <details>: acordeón nativo, accesible y sin JavaScript. */
+import { faq, faqIntro } from '../../data/home';
+import Icon from '../ui/Icon.astro';
+---
+
+<section id="preguntas" aria-labelledby="t-faq" class="py-[clamp(72px,9vw,128px)]">
+  <div class="wrap flex flex-wrap gap-[clamp(32px,6vw,96px)]">
+    <div class="min-w-0 flex-[1_1_280px]" data-reveal>
+      <h2
+        id="t-faq"
+        class="text-[clamp(34px,4vw,56px)] leading-[1.05] font-extrabold tracking-[-0.025em]"
+      >
+        {faqIntro.title}
+      </h2>
+      <p class="mt-5 max-w-[320px] text-body">
+        {faqIntro.text}{' '}
+        <a href="#contacto" class="text-brand underline underline-offset-4 hover:text-ink">
+          {faqIntro.linkLabel}
+        </a>
+        .
+      </p>
+    </div>
+
+    <div class="min-w-0 flex-[2_1_560px] border-t border-line-strong">
+      {faq.map((item, index) => (
+        <details class="faq group border-b border-line-strong" open={index === 0}>
+          <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-6 py-[22px] text-[19px] font-semibold transition-colors hover:text-brand [&::-webkit-details-marker]:hidden">
+            {item.question}
+            <Icon
+              name="plus"
+              size={24}
+              class="flex-none text-brand transition-transform duration-300 group-open:rotate-45"
+            />
+          </summary>
+          <div class="faq-body">
+            <p class="mb-6 max-w-[640px] text-body">{item.answer}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
